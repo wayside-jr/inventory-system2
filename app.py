@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+import requests
 
 app = Flask(__name__)
 
@@ -78,5 +79,52 @@ def delete_item(id):
 
     return jsonify({"message": "Item deleted"})
 
+
+# external api
+#get products
+@app.route("/api/products/<string:name>", methods=["GET"])
+def get_products(name):
+
+    url = f"https://world.openfoodfacts.org/cgi/search.pl"
+
+    params = {
+        "search_terms": name,
+        "search_simple": 1,
+        "action": "process",
+        "json": 1
+    }
+
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+
+    res = requests.get(url, params=params, headers=headers, timeout=10)
+
+    try:
+        data = res.json()
+    except Exception:
+        return {
+            "error": "External API returned invalid response",
+            "status_code": res.status_code
+        }, 500
+
+    products = []
+
+    for p in data.get("products", []):
+        name = p.get("product_name")
+
+        if not name:
+            continue
+
+        products.append({
+            "name": name,
+            "brand": p.get("brands"),
+            "barcode": p.get("code")
+        })
+
+    return {
+        "count": len(products),
+        "products": products
+    }
 if __name__ == "__main__":
     app.run(debug=True)
