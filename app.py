@@ -77,3 +77,6 @@ def delete_item(id):
     items = [i for i in items if i["id"] != id]
 
     return jsonify({"message": "Item deleted"})
+
+if __name__ == "__main__":
+    app.run(debug=True)
