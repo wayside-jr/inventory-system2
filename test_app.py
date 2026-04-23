@@ -1,5 +1,5 @@
 import pytest
-from app import app
+from app import app ,items
 from unittest.mock import patch
 
 @pytest.fixture
@@ -8,6 +8,10 @@ def client():
 
     with app.test_client() as client:
         yield client
+
+@pytest.fixture(autouse=True)
+def reset_items():
+    items.clear()
 
 def test_create_item(client):
     res = client.post("/items", json={
@@ -21,3 +25,78 @@ def test_create_item(client):
     assert res.status_code == 201
     data = res.get_json()
     assert data["name"] == "Milk"
+
+def test_get_items(client):
+    res = client.get("/items")
+
+    assert res.status_code == 200
+    data = res.get_json()
+    assert "items" in data
+
+
+def test_get_single_item(client):
+    client.post("/items", json={
+        "name": "Bread",
+        "barcode": "999",
+        "price": 5,
+        "quantity": 1,
+        "category": "food"
+    })
+
+    res = client.get("/items/1")
+
+    assert res.status_code == 200
+    assert res.get_json()["name"] == "Bread"
+
+def test_update_item(client):
+    client.post("/items", json={
+        "name": "Sugar",
+        "barcode": "888",
+        "price": 3,
+        "quantity": 2,
+        "category": "food"
+    })
+
+    res = client.patch("/items/1", json={
+        "price": 20
+    })
+
+    assert res.status_code == 200
+
+    updated = client.get("/items/1").get_json()
+    assert updated["price"] == 20
+
+def test_delete_item(client):
+    client.post("/items", json={
+        "name": "Tea",
+        "barcode": "777",
+        "price": 2,
+        "quantity": 3,
+        "category": "drink"
+    })
+
+    res = client.delete("/items/1")
+
+    assert res.status_code == 200
+
+@patch("app.requests.get")
+def test_external_api(mock_get, client):
+
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "products": [
+            {
+                "product_name": "Bread",
+                "brands": "TestBrand",
+                "code": "123"
+            }
+        ]
+    }
+
+    res = client.get("/api/products/bread")
+
+    assert res.status_code == 200
+    data = res.get_json()
+
+    assert "products" in data
+    assert len(data["products"]) > 0
