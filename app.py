@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+import requests
 
 app = Flask(__name__)
 
@@ -77,6 +78,31 @@ def delete_item(id):
     items = [i for i in items if i["id"] != id]
 
     return jsonify({"message": "Item deleted"})
+
+
+# external api
+#get products
+@app.route("/api/products/<string:name>", methods=["GET"])
+def get_products(name):
+
+    url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={name}&search_simple=1&action=process&json=1"
+
+    res = requests.get(url)
+    data = res.json()
+
+    products = []
+
+    for p in data.get("products", []):
+        products.append({
+            "name": p.get("product_name"),
+            "brand": p.get("brands"),
+            "barcode": p.get("code")
+        })
+
+    return {
+        "count": len(products),
+        "products": products
+    }
 
 if __name__ == "__main__":
     app.run(debug=True)
