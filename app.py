@@ -62,3 +62,18 @@ def update_item(id):
         "message": "Item updated",
         "item": item
     })
+
+# Delete item
+
+@app.route("/items/<int:id>", methods=["DELETE"])
+def delete_item(id):
+    global items
+
+    item = next((i for i in items if i["id"] == id), None)
+
+    if not item:
+        return jsonify({"error": "Item not found"}), 404
+
+    items = [i for i in items if i["id"] != id]
+
+    return jsonify({"message": "Item deleted"})
