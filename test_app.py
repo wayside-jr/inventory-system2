@@ -28,7 +28,7 @@ def test_get_items(client):
     assert res.status_code == 200
     data = res.get_json()
     assert "items" in data
-    
+
 
 def test_get_single_item(client):
     client.post("/items", json={
@@ -43,3 +43,21 @@ def test_get_single_item(client):
 
     assert res.status_code == 200
     assert res.get_json()["name"] == "Bread"
+
+def test_update_item(client):
+    client.post("/items", json={
+        "name": "Sugar",
+        "barcode": "888",
+        "price": 3,
+        "quantity": 2,
+        "category": "food"
+    })
+
+    res = client.patch("/items/1", json={
+        "price": 20
+    })
+
+    assert res.status_code == 200
+
+    updated = client.get("/items/1").get_json()
+    assert updated["price"] == 20
