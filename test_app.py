@@ -1,5 +1,5 @@
 import pytest
-from app import app
+from app import app ,items
 from unittest.mock import patch
 
 @pytest.fixture
@@ -8,6 +8,10 @@ def client():
 
     with app.test_client() as client:
         yield client
+
+@pytest.fixture(autouse=True)
+def reset_items():
+    items.clear()
 
 def test_create_item(client):
     res = client.post("/items", json={
