@@ -85,14 +85,35 @@ def delete_item(id):
 @app.route("/api/products/<string:name>", methods=["GET"])
 def get_products(name):
 
-    url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={name}&search_simple=1&action=process&json=1"
+    url = f"https://world.openfoodfacts.org/cgi/search.pl"
 
-    res = requests.get(url)
-    data = res.json()
+    params = {
+        "search_terms": name,
+        "search_simple": 1,
+        "action": "process",
+        "json": 1
+    }
+
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+
+    res = requests.get(url, params=params, headers=headers, timeout=10)
+
+    try:
+        data = res.json()
+    except Exception:
+        return {
+            "error": "External API returned invalid response",
+            "status_code": res.status_code
+        }, 500
 
     products = []
 
     for p in data.get("products", []):
+        if not p:
+            continue
+
         products.append({
             "name": p.get("product_name"),
             "brand": p.get("brands"),
@@ -103,6 +124,5 @@ def get_products(name):
         "count": len(products),
         "products": products
     }
-
 if __name__ == "__main__":
     app.run(debug=True)
