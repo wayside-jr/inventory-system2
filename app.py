@@ -24,3 +24,21 @@ def create_item():
 
     return jsonify(new_item), 201
 
+# get all items 
+@app.route("/items", methods=["GET"])
+def get_items():
+    return jsonify({
+        "count": len(items),
+        "items": items
+    }) 
+
+# get one item 
+@app.route("/items/<int:id>", methods=["GET"])
+def get_item(id):
+    item = next((i for i in items if i["id"] == id), None)
+
+    if not item:
+        return jsonify({"error": "Item not found"}), 404
+
+    return jsonify(item)
+
