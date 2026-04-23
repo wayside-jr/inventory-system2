@@ -74,3 +74,25 @@ def test_delete_item(client):
     res = client.delete("/items/1")
 
     assert res.status_code == 200
+
+@patch("app.requests.get")
+def test_external_api(mock_get, client):
+
+    mock_get.return_value.status_code = 200
+    mock_get.return_value.json.return_value = {
+        "products": [
+            {
+                "product_name": "Bread",
+                "brands": "TestBrand",
+                "code": "123"
+            }
+        ]
+    }
+
+    res = client.get("/api/products/bread")
+
+    assert res.status_code == 200
+    data = res.get_json()
+
+    assert "products" in data
+    assert len(data["products"]) > 0
