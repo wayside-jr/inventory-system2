@@ -61,3 +61,16 @@ def test_update_item(client):
 
     updated = client.get("/items/1").get_json()
     assert updated["price"] == 20
+
+def test_delete_item(client):
+    client.post("/items", json={
+        "name": "Tea",
+        "barcode": "777",
+        "price": 2,
+        "quantity": 3,
+        "category": "drink"
+    })
+
+    res = client.delete("/items/1")
+
+    assert res.status_code == 200
