@@ -111,11 +111,13 @@ def get_products(name):
     products = []
 
     for p in data.get("products", []):
-        if not p:
+        name = p.get("product_name")
+
+        if not name:
             continue
 
         products.append({
-            "name": p.get("product_name"),
+            "name": name,
             "brand": p.get("brands"),
             "barcode": p.get("code")
         })
