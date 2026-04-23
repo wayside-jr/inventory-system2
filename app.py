@@ -42,3 +42,23 @@ def get_item(id):
 
     return jsonify(item)
 
+# update item
+@app.route("/items/<int:id>", methods=["PATCH"])
+def update_item(id):
+    item = next((i for i in items if i["id"] == id), None)
+
+    if not item:
+        return jsonify({"error": "Item not found"}), 404
+
+    data = request.get_json()
+
+    item["name"] = data.get("name", item["name"])
+    item["barcode"] = data.get("barcode", item["barcode"])
+    item["price"] = data.get("price", item["price"])
+    item["quantity"] = data.get("quantity", item["quantity"])
+    item["category"] = data.get("category", item["category"])
+
+    return jsonify({
+        "message": "Item updated",
+        "item": item
+    })
