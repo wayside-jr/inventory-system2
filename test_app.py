@@ -21,3 +21,25 @@ def test_create_item(client):
     assert res.status_code == 201
     data = res.get_json()
     assert data["name"] == "Milk"
+
+def test_get_items(client):
+    res = client.get("/items")
+
+    assert res.status_code == 200
+    data = res.get_json()
+    assert "items" in data
+    
+
+def test_get_single_item(client):
+    client.post("/items", json={
+        "name": "Bread",
+        "barcode": "999",
+        "price": 5,
+        "quantity": 1,
+        "category": "food"
+    })
+
+    res = client.get("/items/1")
+
+    assert res.status_code == 200
+    assert res.get_json()["name"] == "Bread"
